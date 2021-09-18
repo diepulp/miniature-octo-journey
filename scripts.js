@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let squares = Array.from(document.querySelectorAll('.grid div'));
     let nextRandom = 0;
-    let timerId;
+    let timerId; //null
+    let score = 0;
 
 
     //The Tetrominoes
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     //make the tetrimonoe move down every second
-    //let timerId = setInterval(moveDown, 1000);
+    //let timerId = setInterval(moveDown, 1000); Initialized on window load
 
     //moveDown function
     function moveDown() {
@@ -98,13 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 .classList.add('taken'));
             //get a new tetromino
               //start a new tetromino
-              random = nextRandom
+              random = nextRandom;
               nextRandom = Math.floor(Math.random() * theTetrominoes.length)
               current = theTetrominoes[random][currentRotation]
               currentPosition = 4
             //randomTetromino();
             draw();
             displayShape();
+            addScore();
+            gameOver();
         }
     }
 
@@ -203,22 +206,24 @@ document.addEventListener('DOMContentLoaded', () => {
         [1, displayWidth + 1, displayWidth * 2 + 1, displayWidth * 3 + 1] //iTetromino
     ];
 
-    //display next in the moni-grid
+    //display shape in the moni-grid
 
     function displayShape(){
         //remove the tetromino from the grid
         displaySquares.forEach(square => {
             square.classList.remove('tetromino');
         })
+        //for each randomly selected "up next" tetromino
+        //add a class of teromino to it
         upNextTetrominoes[nextRandom].forEach(index =>{
             displaySquares[displayIndex + index].classList.add('tetromino');
         })
     }
 
-    //add funcrionality to start buttin
+    //add funcrionality to start button
 
     START_BUTTON.addEventListener('click', () => {
-        if (timerId){
+        if (timerId){//not null, pause the game
             clearInterval(timerId);
             timerId = null;
         }else{
@@ -228,6 +233,42 @@ document.addEventListener('DOMContentLoaded', () => {
             displayShape();
         }
     })
+
+    //ADD SCORE
+
+    function addScore(){
+        //loop ove the entire grid 10 squares at a time (width by width)
+        for (let i = 0; i < 199; i += width){
+            const row = [i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6, i + 7, i + 8, i + 9];
+            
+            //if all the sqaures are filled in (taken)
+            if (row.every(index => squares[index].classList.contains('taken'))){
+                score += 10;
+                SCORE_DISPLAY.innerHTML = score;
+
+                //for each item of the row remove the class of taken
+                row.forEach(index => {
+                    squares[index].classList.remove('taken');
+                    square[index].classList.remove('tetromino');
+                })
+                const squaresRemoved = squares.splice(i, width);
+                //console.log(squaresRemoved);
+                //append those squares to the grid
+                squares = squaresRemoved.concat(squares);
+                squares.forEach(cell => GRID.appendChild(cell));
+            }
+        }
+    }
+
+    //GAME OVER
+    //if original index (4) contains a class taken, the game is over
+
+    function gameOver(){
+        if(current.some(index => squares[currentPosition + index].classList.contains('taken'))){
+            SCORE_DISPLAY.innerHTML = "end";
+            clearInterval(timerId);
+        }
+    }
 
 
 
